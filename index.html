@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>慢病用药小管家</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1 class="app-title">慢病用药小管家</h1>
+            <p class="app-subtitle">您的贴心用药助手</p>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="medications">用药计划</button>
+            <button class="tab-btn" data-tab="reminders">服药提醒</button>
+            <button class="tab-btn" data-tab="visits">复诊管理</button>
+            <button class="tab-btn" data-tab="records">用药记录</button>
+            <button class="tab-btn" data-tab="help">使用帮助</button>
+        </nav>
+
+        <main class="content-area">
+            <section id="medications-tab" class="tab-content active">
+                <div class="section-header">
+                    <h2>我的用药计划</h2>
+                    <button class="btn btn-primary" onclick="showAddMedicationModal()">+ 添加药品</button>
+                </div>
+
+                <div class="import-section">
+                    <button class="btn btn-secondary" onclick="showImportModal()">导入药品信息</button>
+                    <button class="btn btn-secondary" onclick="exportMedications()">导出药品信息</button>
+                </div>
+
+                <div class="schedule-view">
+                    <h3>今日用药时间表</h3>
+                    <div id="today-schedule" class="schedule-list"></div>
+                </div>
+
+                <div class="medications-list">
+                    <h3>所有药品</h3>
+                    <div id="medications-container"></div>
+                </div>
+            </section>
+
+            <section id="reminders-tab" class="tab-content">
+                <div class="section-header">
+                    <h2>服药提醒设置</h2>
+                </div>
+
+                <div class="reminder-settings">
+                    <div class="setting-group">
+                        <label>
+                            <input type="checkbox" id="browser-notification-toggle"> 启用浏览器通知
+                        </label>
+                        <p class="setting-desc">在服药时间到达时，浏览器会弹出提醒通知</p>
+                    </div>
+
+                    <div class="setting-group">
+                        <label>提前提醒时间</label>
+                        <select id="advance-reminder-time">
+                            <option value="0">准时提醒</option>
+                            <option value="5">提前5分钟</option>
+                            <option value="10" selected>提前10分钟</option>
+                            <option value="15">提前15分钟</option>
+                            <option value="30">提前30分钟</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-group">
+                        <label>提醒铃声</label>
+                        <select id="reminder-sound">
+                            <option value="default">默认铃声</option>
+                            <option value="gentle">温和铃声</option>
+                            <option value="urgent">紧急铃声</option>
+                            <option value="none">静音</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveReminderSettings()">保存提醒设置</button>
+                </div>
+
+                <div class="reminder-status">
+                    <h3>提醒状态</h3>
+                    <div id="reminder-status-list"></div>
+                </div>
+            </section>
+
+            <section id="visits-tab" class="tab-content">
+                <div class="section-header">
+                    <h2>复诊周期管理</h2>
+                    <button class="btn btn-primary" onclick="showAddVisitModal()">+ 添加复诊</button>
+                </div>
+
+                <div class="visits-list" id="visits-container"></div>
+            </section>
+
+            <section id="records-tab" class="tab-content">
+                <div class="section-header">
+                    <h2>用药记录追踪</h2>
+                </div>
+
+                <div class="records-filter">
+                    <label>选择日期：</label>
+                    <input type="date" id="record-date-filter" onchange="loadRecords()">
+                </div>
+
+                <div class="records-stats">
+                    <div class="stat-card">
+                        <h4>今日应服药次数</h4>
+                        <p id="stat-today-total">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>今日已服药次数</h4>
+                        <p id="stat-today-taken">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>本周依从率</h4>
+                        <p id="stat-week-compliance">0%</p>
+                    </div>
+                </div>
+
+                <div class="records-list" id="records-container"></div>
+            </section>
+
+            <section id="help-tab" class="tab-content">
+                <div class="section-header">
+                    <h2>使用帮助</h2>
+                </div>
+
+                <div class="help-content">
+                    <div class="help-section">
+                        <h3>快速入门</h3>
+                        <ol>
+                            <li>点击「用药计划」标签，添加您需要服用的药品</li>
+                            <li>设置每种药品的服用时间、剂量和频次</li>
+                            <li>在「服药提醒」中开启浏览器通知</li>
+                            <li>每天在「用药记录」中打卡，追踪服药情况</li>
+                            <li>添加复诊计划，不错过任何一次复诊</li>
+                        </ol>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>添加药品</h3>
+                        <p>点击「+ 添加药品」按钮，填写以下信息：</p>
+                        <ul>
+                            <li><strong>药品名称</strong>：请输入完整的药品名称</li>
+                            <li><strong>单次剂量</strong>：每次服用的数量，如「1片」、「2粒」</li>
+                            <li><strong>服用频次</strong>：每日几次，如「每日3次」</li>
+                            <li><strong>用药时段</strong>：选择服药时间，如早餐后、午餐后、晚餐后</li>
+                            <li><strong>备注</strong>：可以填写特殊说明，如「空腹服用」</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>导入/导出药品</h3>
+                        <p>支持从其他设备导入药品信息，也可以将您的药品列表导出备份：</p>
+                        <ul>
+                            <li>点击「导入药品信息」选择之前导出的JSON文件</li>
+                            <li>点击「导出药品信息」将当前药品列表保存为文件</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>服药提醒</h3>
+                        <p>开启浏览器通知后，到达服药时间时会收到弹窗提醒：</p>
+                        <ul>
+                            <li>首次使用需要允许浏览器发送通知权限</li>
+                            <li>可以设置提前提醒时间，避免忘记服药</li>
+                            <li>支持选择不同提醒铃声</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>复诊管理</h3>
+                        <p>根据您的处方设置复诊周期，系统会提前提醒：</p>
+                        <ul>
+                            <li>添加复诊信息，包括科室、医生、复诊日期</li>
+                            <li>系统会在复诊前7天、3天、1天分别发送提醒</li>
+                            <li>可以手动调整复诊日期</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>用药记录</h3>
+                        <p>每天记录您的实际服药情况：</p>
+                        <ul>
+                            <li>点击「已服用」或「未服用」按钮进行打卡</li>
+                            <li>查看本周依从率，了解自己的服药规律</li>
+                            <li>支持按日期筛选查看历史记录</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>数据说明</h3>
+                        <p>所有数据保存在您的浏览器本地存储中：</p>
+                        <ul>
+                            <li>清除浏览器数据会导致记录丢失，建议定期导出备份</li>
+                            <li>换设备使用时，可通过导入功能恢复数据</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div class="modal" id="add-medication-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>添加药品</h3>
+                    <button class="close-btn" onclick="closeModal('add-medication-modal')">&times;</button>
+                </div>
+                <form id="add-medication-form" onsubmit="addMedication(event)">
+                    <div class="form-group">
+                        <label for="med-name">药品名称 *</label>
+                        <input type="text" id="med-name" required placeholder="如：阿司匹林肠溶片">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="med-dosage">单次剂量 *</label>
+                        <input type="text" id="med-dosage" required placeholder="如：1片、2粒、5ml">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="med-frequency">服用频次 *</label>
+                        <select id="med-frequency" required>
+                            <option value="">请选择</option>
+                            <option value="每日1次">每日1次</option>
+                            <option value="每日2次">每日2次</option>
+                            <option value="每日3次">每日3次</option>
+                            <option value="每日4次">每日4次</option>
+                            <option value="需要时服用">需要时服用</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>用药时段 *</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="med-times" value="morning"> 早餐后（约8:00）</label>
+                            <label><input type="checkbox" name="med-times" value="noon"> 午餐后（约12:00）</label>
+                            <label><input type="checkbox" name="med-times" value="evening"> 晚餐后（约18:00）</label>
+                            <label><input type="checkbox" name="med-times" value="bedtime"> 睡前（约21:00）</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="med-notes">备注</label>
+                        <textarea id="med-notes" placeholder="如：空腹服用、避免饮酒等"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="med-start-date">开始日期</label>
+                        <input type="date" id="med-start-date">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="med-end-date">结束日期（可选）</label>
+                        <input type="date" id="med-end-date">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">保存药品</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="modal" id="import-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>导入药品信息</h3>
+                    <button class="close-btn" onclick="closeModal('import-modal')">&times;</button>
+                </div>
+                <div class="import-form">
+                    <p>请选择之前导出的药品信息文件（JSON格式）</p>
+                    <input type="file" id="import-file" accept=".json">
+                    <button class="btn btn-primary" onclick="importMedications()">导入</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="add-visit-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>添加复诊计划</h3>
+                    <button class="close-btn" onclick="closeModal('add-visit-modal')">&times;</button>
+                </div>
+                <form id="add-visit-form" onsubmit="addVisit(event)">
+                    <div class="form-group">
+                        <label for="visit-dept">科室 *</label>
+                        <input type="text" id="visit-dept" required placeholder="如：心内科">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="visit-doctor">医生</label>
+                        <input type="text" id="visit-doctor" placeholder="如：张医生">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="visit-date">复诊日期 *</label>
+                        <input type="date" id="visit-date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="visit-notes">备注</label>
+                        <textarea id="visit-notes" placeholder="如：带齐检查报告、空腹等"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">保存复诊计划</button>
+                </form>
+            </div>
+        </div>
+
+        <footer class="app-footer">
+            <p>慢病用药小管家 &copy; 2026 | 数据保存在本地，请定期备份</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
